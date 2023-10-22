@@ -1,0 +1,181 @@
+from PIL import Image
+import matplotlib.pyplot as plt
+import os
+import glob
+import torch
+from torch.utils.data import Dataset
+import skillsnetwork 
+
+def show_data(data_sample, shape = (28, 28)):
+    plt.imshow(data_sample[0].numpy().reshape(shape), cmap='gray')
+    plt.title('y = ' + data_sample[1])
+
+
+await skillsnetwork.prepare("https://s3-api.us-geo.objectstorage.softlayer.net/cf-courses-data/CognitiveClass/DL0321EN/data/images/concrete_crack_images_for_classification.zip", path = "/resources/data", overwrite=True)
+
+
+directory="/resources/data"
+negative='Negative'
+negative_file_path=os.path.join(directory,negative)
+negative_files=[os.path.join(negative_file_path,file) for file in  os.listdir(negative_file_path) if file.endswith(".jpg")]
+negative_files.sort()
+negative_files[0:3]
+
+
+
+positive="Positive"
+positive_file_path=os.path.join(directory,positive)
+positive_files=[os.path.join(positive_file_path,file) for file in  os.listdir(positive_file_path) if file.endswith(".jpg")]
+positive_files.sort()
+positive_files[0:3]
+
+
+
+number_of_samples = len(positive_files) + len(negative_files)
+number_of_samples
+
+
+Y=torch.zeros([number_of_samples])
+
+
+Y=Y.type(torch.LongTensor)
+Y.type()
+
+
+Y[::2]=1
+Y[1::2]=0
+
+all_files = [None]*(len(positive_files)+len(negative_files))
+all_files[::2] = positive_files
+all_files[1::2] = negative_files
+all_files[0:5]
+
+
+for y,file in zip(Y, all_files[0:4]):
+    plt.imshow(Image.open(file))
+    plt.title("y="+str(y.item()))
+    plt.show()
+
+
+train=False
+
+if train:
+    all_files=all_files[0:30000]
+    Y=Y[0:30000]
+
+else:
+    all_files=all_files[30000:]
+    Y=Y[30000:]
+
+
+def func(train):
+    """
+    train=False returns Train set
+    train=True returns Validation set
+    """
+    
+    number_of_samples = len(positive_files) + len(negative_files)
+    
+    Y=torch.zeros([number_of_samples])
+    Y=Y.type(torch.LongTensor)
+    Y.type()
+    Y[::2]=1
+    Y[1::2]=0
+    
+    all_files = [None]*(len(positive_files)+len(negative_files))
+    all_files[::2] = positive_files
+    all_files[1::2] = negative_files
+
+    if train:
+        all_files=all_files[0:30000]
+        Y=Y[0:30000]
+
+    else:
+        all_files=all_files[30000:]
+        Y=Y[30000:]
+        
+    return all_files, Y
+    
+all_files, Y = func(train=False)
+for y,file in zip(Y, all_files[0:4]):
+    plt.imshow(Image.open(file))
+    plt.title("y="+str(y.item()))
+    plt.show()
+    
+
+class Dataset(Dataset):
+
+    # Constructor
+    def __init__(self,transform=None,train=True):
+        directory="/resources/data"
+        positive="Positive"
+        negative="Negative"
+
+        positive_file_path=os.path.join(directory,positive)
+        negative_file_path=os.path.join(directory,negative)
+        positive_files=[os.path.join(positive_file_path,file) for file in  os.listdir(positive_file_path) if file.endswith(".jpg")]
+        positive_files.sort()
+        negative_files=[os.path.join(negative_file_path,file) for file in  os.listdir(negative_file_path) if file.endswith(".jpg")]
+        negative_files.sort()
+
+        self.all_files=[None]*number_of_samples
+        self.all_files[::2]=positive_files
+        self.all_files[1::2]=negative_files 
+        # The transform is goint to be used on image
+        self.transform = transform
+        #torch.LongTensor
+        self.Y=torch.zeros([number_of_samples]).type(torch.LongTensor)
+        self.Y[::2]=1
+        self.Y[1::2]=0
+        
+        if train:
+
+            self.Y=self.Y[0:30000]
+            self.len=len(self.all_files)
+        else:
+
+            self.Y=self.Y[30000:]
+            self.len=len(self.all_files)
+    
+  
+            
+     
+       
+    # Get the length
+    def __len__(self):
+        return self.len
+    
+    # Getter
+    def __getitem__(self, idx):
+        
+        
+        image=Image.open(self.all_files[idx])
+        y=self.Y[idx]
+          
+        
+        # If there is any transform method, apply it onto the image
+        if self.transform:
+            image = self.transform(image)
+
+        return image, y
+
+
+import torchvision.transforms as transforms
+
+mean = [0.485, 0.456, 0.406]
+std = [0.229, 0.224, 0.225]
+
+transform =transforms.Compose([ transforms.ToTensor(), transforms.Normalize(mean, std)])
+dataset_train=Dataset(transform=transform,train=True)
+
+for sample in dataset_train:
+    plt.imshow(dataset_train[sample][0])
+    plt.xlabel("y="+str(dataset_train[sample][1].item()))
+    plt.title("training data, sample {}".format(int(sample)))
+    plt.show()
+
+for sample  in samples:
+    plt.imshow(dataset[sample][0])
+    plt.xlabel("y="+str(dataset[sample][1].item()))
+    plt.title("validation data, sample {}".format(int(sample)))
+    plt.show()

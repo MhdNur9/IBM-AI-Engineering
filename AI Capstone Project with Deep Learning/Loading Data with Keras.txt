@@ -1,0 +1,98 @@
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+import skillsnetwork
+
+from PIL import Image
+
+await skillsnetwork.prepare("https://s3-api.us-geo.objectstorage.softlayer.net/cf-courses-data/CognitiveClass/DL0321EN/data/images/concrete_crack_images_for_classification.zip", overwrite=True)
+
+
+negative_files = os.scandir('./Negative')
+negative_files
+
+file_name = next(negative_files)
+file_name
+
+
+os.path.isfile(file_name)
+
+
+image_name = str(file_name).split("'")[1]
+image_name
+
+
+image_data = plt.imread('./Negative/{}'.format(image_name))
+image_data
+
+
+image_data.shape
+
+
+plt.imshow(image_data)
+
+
+negative_images = os.listdir('./Negative')
+negative_images
+
+
+negative_images.sort()
+negative_images
+
+
+image_data = Image.open('./Negative/{}'.format(negative_images[0]))
+
+
+image_data
+
+
+
+plt.imshow(image_data)
+
+
+
+negative_images_dir = ['./Negative/{}'.format(image) for image in negative_images]
+negative_images_dir
+
+
+len(negative_images_dir)
+
+
+file_name = next(negative_files)
+os.path.isfile(file_name)
+image_name = str(file_name).split("'")[1]
+image_data = plt.imread('/resources/data/Negative/{}'.format(image_name))
+plt.imshow(image_data)
+
+
+file_name = next(negative_files)
+os.path.isfile(file_name)
+image_name = str(file_name).split("'")[1]
+image_data = plt.imread('/resources/data/Negative/{}'.format(image_name))
+plt.imshow(image_data)
+file_name = next(negative_files)
+os.path.isfile(file_name)
+image_name = str(file_name).split("'")[1]
+image_data = plt.imread('/resources/data/Negative/{}'.format(image_name))
+plt.imshow(image_data)
+
+
+
+positive_images = os.listdir('./Positive')
+positive_images.sort()
+positive_images_dir = ['./Positive/{}'.format(image) for image in positive_images]
+positive_images_dir
+
+len(positive_images_dir)
+positive_images_dir[0:5]
+
+for i in range(0,5):
+    print(positive_images[i])
+    image = Image.open('./Positive/{}'.format(positive_images[i]))
+    plt.imshow(image)
+    plt.title("Images With Cracks")
+    plt.show()
+
+
+
+

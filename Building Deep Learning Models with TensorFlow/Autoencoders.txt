@@ -1,0 +1,157 @@
+!pip install tensorflow==2.9.0
+
+#from __future__ import division, print_function, absolute_import
+
+import tensorflow as tf
+import numpy as np
+import matplotlib.pyplot as plt
+%matplotlib inline
+
+if not tf.__version__ == '2.9.0':
+    print(tf.__version__)
+    raise ValueError('please upgrade to TensorFlow 2.9.0, or restart your Kernel (Kernel->Restart & Clear Output)')
+
+
+# Import MINST data
+mnist = tf.keras.datasets.mnist
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+x_train = x_train.astype('float32') / 255.
+x_test = x_test.astype('float32') / 255.
+
+y_train = y_train.astype('float32') / 255.
+y_test = y_test.astype('float32') / 255.
+
+x_image_train = tf.reshape(x_train, [-1,28,28,1])  
+x_image_train = tf.cast(x_image_train, 'float32') 
+
+x_image_test = tf.reshape(x_test, [-1,28,28,1]) 
+x_image_test = tf.cast(x_image_test, 'float32') 
+
+print(x_train.shape)
+
+flatten_layer = tf.keras.layers.Flatten()
+x_train = flatten_layer(x_train)
+
+print(x_train.shape)
+
+learning_rate = 0.01
+training_epochs = 20
+batch_size = 256
+display_step = 1
+examples_to_show = 10
+global_step = tf.Variable(0)
+total_batch = int(len(x_train) / batch_size)
+
+# Network Parameters
+n_hidden_1 = 256 # 1st layer num features
+n_hidden_2 = 128 # 2nd layer num features
+encoding_layer = 32 # final encoding bottleneck features
+n_input = 784 # MNIST data input (img shape: 28*28)
+
+
+
+enocoding_1 = tf.keras.layers.Dense(n_hidden_1, activation=tf.nn.sigmoid)
+encoding_2 = tf.keras.layers.Dense(n_hidden_2, activation=tf.nn.sigmoid)
+encoding_final = tf.keras.layers.Dense(encoding_layer, activation=tf.nn.relu)
+
+# Building the encoder
+def encoder(x):
+    x_reshaped = flatten_layer(x)
+    # Encoder first layer with sigmoid activation #1
+    layer_1 = enocoding_1(x_reshaped)
+    # Encoder second layer with sigmoid activation #2
+    layer_2 = encoding_2(layer_1)
+    code = encoding_final(layer_2)
+    return code
+
+decoding_1 = tf.keras.layers.Dense(n_hidden_2, activation=tf.nn.sigmoid)
+decoding_2 = tf.keras.layers.Dense(n_hidden_1, activation=tf.nn.sigmoid)
+decoding_final = tf.keras.layers.Dense(n_input)
+# Building the decoder
+def decoder(x):
+    # Decoder first layer with sigmoid activation #1
+    layer_1 = decoding_1(x)
+    # Decoder second layer with sigmoid activation #2
+    layer_2 = decoding_2(layer_1)
+    decode = self.decoding_final(layer_2)
+    return decode
+
+class AutoEncoder(tf.keras.Model):
+    def __init__(self):
+        super(AutoEncoder, self).__init__()
+
+        self.n_hidden_1 = n_hidden_1 # 1st layer num features
+        self.n_hidden_2 = n_hidden_2 # 2nd layer num features
+        self.encoding_layer = encoding_layer
+        self.n_input = n_input # MNIST data input (img shape: 28*28)
+
+        self.flatten_layer = tf.keras.layers.Flatten()
+        self.enocoding_1 = tf.keras.layers.Dense(self.n_hidden_1, activation=tf.nn.sigmoid)
+        self.encoding_2 = tf.keras.layers.Dense(self.n_hidden_2, activation=tf.nn.sigmoid)
+        self.encoding_final = tf.keras.layers.Dense(self.encoding_layer, activation=tf.nn.relu)
+        self.decoding_1 = tf.keras.layers.Dense(self.n_hidden_2, activation=tf.nn.sigmoid)
+        self.decoding_2 = tf.keras.layers.Dense(self.n_hidden_1, activation=tf.nn.sigmoid)
+        self.decoding_final = tf.keras.layers.Dense(self.n_input)
+
+
+    # Building the encoder
+    def encoder(self,x):
+        #x = self.flatten_layer(x)
+        layer_1 = self.enocoding_1(x)
+        layer_2 = self.encoding_2(layer_1)
+        code = self.encoding_final(layer_2)
+        return code
+        
+
+    # Building the decoder
+    def decoder(self, x):
+        layer_1 = self.decoding_1(x)
+        layer_2 = self.decoding_2(layer_1)
+        decode = self.decoding_final(layer_2)
+        return decode
+
+        
+    def call(self, x):
+        encoder_op  = self.encoder(x)
+        # Reconstructed Images
+        y_pred = self.decoder(encoder_op)
+        return y_pred
+        
+def cost(y_true, y_pred):
+    loss = tf.losses.mean_squared_error(y_true, y_pred)
+    cost = tf.reduce_mean(loss)
+    return cost
+
+def grad(model, inputs, targets):
+    #print('shape of inputs : ',inputs.shape)
+    #targets = flatten_layer(targets)
+    with tf.GradientTape() as tape:    
+        reconstruction = model(inputs)
+        loss_value = cost(targets, reconstruction)
+    return loss_value, tape.gradient(loss_value, model.trainable_variables),reconstruction
+
+model = AutoEncoder()
+optimizer = tf.keras.optimizers.RMSprop(learning_rate)
+
+for epoch in range(training_epochs):
+    for i in range(total_batch):
+        x_inp = x_train[i : i + batch_size]
+        loss_value, grads, reconstruction = grad(model, x_inp, x_inp)
+        optimizer.apply_gradients(zip(grads, model.trainable_variables))
+    # Display logs per epoch step
+    if epoch % display_step == 0:
+        print("Epoch:", '%04d' % (epoch+1),
+              "cost=", "{:.9f}".format(loss_value))
+
+print("Optimization Finished!")
+
+# Applying encode and decode over test set
+encode_decode = model(flatten_layer(x_image_test[:examples_to_show]))
+
+# Compare original images with their reconstructions
+f, a = plt.subplots(2, 10, figsize=(10, 2))
+for i in range(examples_to_show):
+    a[0][i].imshow(np.reshape(x_image_test[i], (28, 28)))
+    a[1][i].imshow(np.reshape(encode_decode[i], (28, 28)))
+

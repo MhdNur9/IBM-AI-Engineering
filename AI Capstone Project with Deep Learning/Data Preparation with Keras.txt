@@ -1,0 +1,138 @@
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+import skillsnetwork
+import keras
+from keras.preprocessing.image import ImageDataGenerator
+
+
+await skillsnetwork.prepare("https://s3-api.us-geo.objectstorage.softlayer.net/cf-courses-data/CognitiveClass/DL0321EN/data/concrete_data_week2.zip",path = "./", overwrite=True)
+
+!ls ./concrete_data_week2
+
+os.listdir('concrete_data_week2')
+
+
+dataset_dir = './concrete_data_week2'
+
+# instantiate your image data generator
+data_generator = ImageDataGenerator()
+
+
+image_generator = data_generator.flow_from_directory(
+    dataset_dir,
+    batch_size=4,
+    class_mode='categorical',
+    seed=24
+    )
+
+
+first_batch = image_generator.next()
+first_batch
+
+
+first_batch_images = image_generator.next()[0]
+first_batch_images
+
+
+first_batch_labels = image_generator.next()[1]
+first_batch_labels
+
+# instantiate your image data generator
+data_generator = ImageDataGenerator(
+    rescale=1./255
+)
+
+
+image_generator = data_generator.flow_from_directory(
+    dataset_dir,
+    batch_size=4,
+    class_mode='categorical',
+    seed=24
+    )
+
+first_batch = image_generator.next()
+first_batch
+
+fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(20, 10)) # define your figure and axes
+
+ind = 0
+for ax1 in axs:
+    for ax2 in ax1: 
+        image_data = first_batch_images[ind].astype(np.uint8)
+        ax2.imshow(image_data)
+        ind += 1
+
+fig.suptitle('First Batch of Concrete Images') 
+plt.show()
+
+## You can use this cell to type your code to answer the above question
+image_generator = data_generator.flow_from_directory(
+    dataset_dir,
+    batch_size=4,
+    class_mode='categorical',
+    seed=24
+    )
+
+for i in range(0,3):
+    first_batch_images = image_generator.next()[0]
+
+fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(20, 10)) # define your figure and axes
+
+ind = 0
+for ax1 in axs:
+    for ax2 in ax1: 
+        #image_data = first_batch_images[ind]
+        image_data = first_batch_images[ind].astype(np.uint8)
+        ax2.imshow(image_data)
+        ind += 1
+
+fig.suptitle('First Batch of Concrete Images') 
+plt.show()
+
+image_generator = data_generator.flow_from_directory(
+    dataset_dir,
+    batch_size=4,
+    class_mode='categorical',
+    seed=24
+    )
+
+for i in range(0,4):
+    first_batch_images = image_generator.next()[0]
+
+fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(20, 10)) # define your figure and axes
+
+ind = 0
+for ax1 in axs:
+    for ax2 in ax1: 
+        #image_data = first_batch_images[ind]
+        image_data = first_batch_images[ind].astype(np.uint8)
+        ax2.imshow(image_data)
+        ind += 1
+
+fig.suptitle('First Batch of Concrete Images') 
+plt.show()## You can use this cell to type your code to answer the above question
+
+image_generator = data_generator.flow_from_directory(
+    dataset_dir,
+    batch_size=4,
+    class_mode='categorical',
+    seed=24
+    )
+
+for i in range(0,5):
+    first_batch_images = image_generator.next()[0]
+
+fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(20, 10)) # define your figure and axes
+
+ind = 0
+for ax1 in axs:
+    for ax2 in ax1: 
+        #image_data = first_batch_images[ind]
+        image_data = first_batch_images[ind].astype(np.uint8)
+        ax2.imshow(image_data)
+        ind += 1
+
+fig.suptitle('First Batch of Concrete Images') 
+plt.show()
+
